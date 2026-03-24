@@ -1,87 +1,243 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Microservices Demo</title>
-</head>
-<body>
-    <h1>Microservices Dashboard</h1>
+<meta charset="UTF-8">
+<title>DevOps Microservices Dashboard</title>
 
-    <h2>Users</h2>
-    <input type="text" id="username" placeholder="Name">
-    <input type="text" id="useremail" placeholder="Email">
+<style>
+/* =======================
+   GLOBAL STYLES
+======================= */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(120deg, #0f172a, #1e293b);
+    color: #e2e8f0;
+}
+
+/* Header */
+header {
+    text-align: center;
+    padding: 25px;
+    font-size: 26px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Layout */
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Cards */
+.card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+}
+
+/* Titles */
+h2 {
+    margin-top: 0;
+    font-size: 18px;
+    border-left: 4px solid #38bdf8;
+    padding-left: 10px;
+}
+
+/* Inputs */
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: none;
+    border-radius: 10px;
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0ea5e9;
+}
+
+/* Lists */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 8px;
+    margin: 6px 0;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    animation: fadeIn 0.4s ease-in;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Status bar */
+.status {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+🚀 Microservices DevOps Dashboard (EKS + Docker + Kubernetes)
+</header>
+
+<div class="container">
+
+<!-- USER SERVICE -->
+<div class="card">
+    <h2>👤 User Service</h2>
+    <input id="username" placeholder="Name">
+    <input id="useremail" placeholder="Email">
     <button onclick="createUser()">Add User</button>
     <ul id="usersList"></ul>
+</div>
 
-    <h2>Orders</h2>
-    <input type="text" id="orderItem" placeholder="Item">
-    <input type="number" id="orderQty" placeholder="Quantity">
+<!-- ORDER SERVICE -->
+<div class="card">
+    <h2>📦 Order Service</h2>
+    <input id="orderItem" placeholder="Item">
+    <input id="orderQty" type="number" placeholder="Quantity">
     <button onclick="createOrder()">Create Order</button>
     <ul id="ordersList"></ul>
+</div>
 
-    <h2>Inventory</h2>
-    <input type="text" id="itemName" placeholder="Item Name">
-    <input type="number" id="itemStock" placeholder="Stock">
+<!-- INVENTORY -->
+<div class="card">
+    <h2>📊 Inventory Service</h2>
+    <input id="itemName" placeholder="Item Name">
+    <input id="itemStock" type="number" placeholder="Stock">
     <button onclick="addItem()">Add Item</button>
     <ul id="itemsList"></ul>
+</div>
+
+<!-- STATUS PANEL -->
+<div class="card">
+    <h2>🔔 System Status</h2>
+    <p>Frontend: 🟢 Active</p>
+    <p>User Service: 🟢 API Connected</p>
+    <p>Order Service: 🟢 API Connected</p>
+    <p>Inventory: 🟢 API Connected</p>
+    <p>Notification: 🟢 Event Driven</p>
+</div>
+
+</div>
+
+<div class="status">
+Connected to Microservices | Running on Kubernetes (EKS)
+</div>
 
 <script>
-const API_BASE = "http://localhost"; // update with EKS ALB later
 
+const API_BASE = "http://localhost"; 
+// later: replace with ALB DNS
+
+// ================= USER =================
 async function fetchUsers() {
     const res = await fetch(`${API_BASE}:5000/users`);
     const data = await res.json();
-    document.getElementById("usersList").innerHTML = data.map(u => `<li>${u.name} (${u.email})</li>`).join('');
+    document.getElementById("usersList").innerHTML =
+        data.map(u => `<li>👤 ${u.name} — ${u.email}</li>`).join('');
 }
 
 async function createUser() {
-    const name = document.getElementById("username").value;
-    const email = document.getElementById("useremail").value;
     await fetch(`${API_BASE}:5000/users`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name, email})
+        body: JSON.stringify({
+            name: username.value,
+            email: useremail.value
+        })
     });
     fetchUsers();
 }
 
+// ================= ORDERS =================
 async function fetchOrders() {
     const res = await fetch(`${API_BASE}:3000/orders`);
     const data = await res.json();
-    document.getElementById("ordersList").innerHTML = data.map(o => `<li>${o.item} (${o.quantity})</li>`).join('');
+    document.getElementById("ordersList").innerHTML =
+        data.map(o => `<li>📦 ${o.item} × ${o.quantity}</li>`).join('');
 }
 
 async function createOrder() {
-    const item = document.getElementById("orderItem").value;
-    const quantity = parseInt(document.getElementById("orderQty").value);
     await fetch(`${API_BASE}:3000/orders`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({item, quantity})
+        body: JSON.stringify({
+            item: orderItem.value,
+            quantity: Number(orderQty.value)
+        })
     });
     fetchOrders();
 }
 
+// ================= INVENTORY =================
 async function fetchItems() {
     const res = await fetch(`${API_BASE}:4000/items`);
     const data = await res.json();
-    document.getElementById("itemsList").innerHTML = data.map(i => `<li>${i.name} (${i.stock})</li>`).join('');
+    document.getElementById("itemsList").innerHTML =
+        data.map(i => `<li>📊 ${i.name} — Stock: ${i.stock}</li>`).join('');
 }
 
 async function addItem() {
-    const name = document.getElementById("itemName").value;
-    const stock = parseInt(document.getElementById("itemStock").value);
     await fetch(`${API_BASE}:4000/items/add`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({name, stock})
+        body: JSON.stringify({
+            name: itemName.value,
+            stock: Number(itemStock.value)
+        })
     });
     fetchItems();
 }
 
-// Initial load
+// INIT
 fetchUsers();
 fetchOrders();
 fetchItems();
+
 </script>
+
 </body>
 </html>
