@@ -1,0 +1,5 @@
+node_modules/
+*.log
+.env
+.DS_Store
+order-service/package-lock.json

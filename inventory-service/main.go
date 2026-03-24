@@ -14,7 +14,10 @@ type Item struct {
 var items []Item
 
 func getItems(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(items)
+    if items == nil {
+        items = []Item{}
+    }
+    json.NewEncoder(w).Encode(items)
 }
 
 func addItem(w http.ResponseWriter, r *http.Request) {
