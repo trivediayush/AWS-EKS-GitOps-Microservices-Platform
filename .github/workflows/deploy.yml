@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
- 
+
 env:
   AWS_REGION: eu-north-1
   ECR_REGISTRY: 381112450421.dkr.ecr.eu-north-1.amazonaws.com
@@ -48,19 +48,33 @@ jobs:
           docker tag ${{ matrix.service }}:latest \
           $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}
 
-      - name: Push Docker image to ECR
+      - name: Push Docker image
         run: |
           docker push $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}
 
-      - name: Update Kubernetes deployment file
-        run: |
-          sed -i "s|image: .*${{ matrix.service }}.*|image: $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}|g" \
-          k8s/${{ matrix.service }}/deployment.yaml
+  update-manifests:
+    needs: build-and-push
+    runs-on: ubuntu-latest
 
-      - name: Commit and push updated manifests
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Update all deployments
+        run: |
+          sed -i "s|image: .*frontend.*|image: $ECR_REGISTRY/frontend:$IMAGE_TAG|g" k8s/frontend/deployment.yaml
+          sed -i "s|image: .*user-service.*|image: $ECR_REGISTRY/user-service:$IMAGE_TAG|g" k8s/user-service/deployment.yaml
+          sed -i "s|image: .*order-service.*|image: $ECR_REGISTRY/order-service:$IMAGE_TAG|g" k8s/order-service/deployment.yaml
+          sed -i "s|image: .*inventory-service.*|image: $ECR_REGISTRY/inventory-service:$IMAGE_TAG|g" k8s/inventory-service/deployment.yaml
+          sed -i "s|image: .*notification-service.*|image: $ECR_REGISTRY/notification-service:$IMAGE_TAG|g" k8s/notification-service/deployment.yaml
+
+      - name: Commit and push
         run: |
           git config --global user.email "ci@github.com"
           git config --global user.name "github-actions"
-          git add k8s/${{ matrix.service }}/deployment.yaml
-          git commit -m "Update ${{ matrix.service }} image to $IMAGE_TAG" || echo "No changes"
+          git add .
+          git commit -m "Update images to $IMAGE_TAG" || echo "No changes"
           git push
