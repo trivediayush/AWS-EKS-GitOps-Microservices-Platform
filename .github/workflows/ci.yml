@@ -1,0 +1,74 @@
+name: Microservices CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      user: ${{ steps.filter.outputs.user }}
+      order: ${{ steps.filter.outputs.order }}
+      inventory: ${{ steps.filter.outputs.inventory }}
+      notification: ${{ steps.filter.outputs.notification }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - 'frontend/**'
+            user:
+              - 'user-service/**'
+            order:
+              - 'order-service/**'
+            inventory:
+              - 'inventory-service/**'
+            notification:
+              - 'notification-service/**'
+
+  frontend:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.frontend == 'true'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service_name: frontend
+      service_path: frontend
+
+  user-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.user == 'true'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service_name: user-service
+      service_path: user-service
+
+  order-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.order == 'true'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service_name: order-service
+      service_path: order-service
+
+  inventory-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.inventory == 'true'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service_name: inventory-service
+      service_path: inventory-service
+
+  notification-service:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.notification == 'true'
+    uses: ./.github/workflows/build-service.yml
+    with:
+      service_name: notification-service
+      service_path: notification-service
