@@ -1,7 +1,7 @@
 FROM golang:1.21-alpine
 
 WORKDIR /app
-
+ 
 # Copy only inventory-service code
 COPY . .
 
