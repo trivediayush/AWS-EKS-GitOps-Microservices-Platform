@@ -3,7 +3,7 @@ FROM golang:1.21-alpine
 WORKDIR /app
 
 # Copy only inventory-service code
-COPY inventory-service/ .
+COPY . .
 
 RUN go mod init inventory-service && go mod tidy
 RUN go build -o inventory-service main.go
