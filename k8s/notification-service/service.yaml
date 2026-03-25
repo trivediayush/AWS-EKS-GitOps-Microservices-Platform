@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: notification-service
 spec:
+  type: ClusterIP
   selector:
     app: notification-service
   ports:
-    - protocol: TCP
-      port: 5001
+    - name: http
+      port: 80
       targetPort: 5001
-  type: ClusterIP

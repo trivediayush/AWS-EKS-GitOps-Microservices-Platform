@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: inventory-service
 spec:
+  type: ClusterIP
   selector:
     app: inventory-service
   ports:
-    - protocol: TCP
-      port: 4000
+    - name: http
+      port: 80
       targetPort: 4000
-  type: ClusterIP
