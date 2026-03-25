@@ -1,4 +1,4 @@
-name: CI - Build & Push Microservices
+name: Build and Push to ECR
 
 on:
   push:
@@ -43,11 +43,24 @@ jobs:
         run: |
           docker build -t ${{ matrix.service }} ./${{ matrix.service }}
 
-      - name: Tag image
+      - name: Tag Docker image
         run: |
           docker tag ${{ matrix.service }}:latest \
-          $ECR_REGISTRY/${{ matrix.service }}:$IMAGE_TAG
+          $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}
 
-      - name: Push image to ECR
+      - name: Push Docker image to ECR
         run: |
-          docker push $ECR_REGISTRY/${{ matrix.service }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}
+
+      - name: Update Kubernetes deployment file
+        run: |
+          sed -i "s|image: .*${{ matrix.service }}.*|image: $ECR_REGISTRY/${{ matrix.service }}:${{ env.IMAGE_TAG }}|g" \
+          k8s/${{ matrix.service }}/deployment.yaml
+
+      - name: Commit and push updated manifests
+        run: |
+          git config --global user.email "ci@github.com"
+          git config --global user.name "github-actions"
+          git add k8s/${{ matrix.service }}/deployment.yaml
+          git commit -m "Update ${{ matrix.service }} image to $IMAGE_TAG" || echo "No changes"
+          git push
