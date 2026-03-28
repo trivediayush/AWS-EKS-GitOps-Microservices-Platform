@@ -69,6 +69,11 @@ aws_microservices_gitops/
 
 ---
 
+---
+<img src="./architecture.png" alt="Architecture">
+---
+
+
 ## 🐳 Build Docker Images
 
 docker build -t user-service ./user-service
